@@ -4,7 +4,7 @@ import torch.functional as F
 
 from torchvision.models import resnet50, ResNet50_Weights
 from einops import repeat
-
+from utils import DEVICE
 class CNN_3D(nn.Module):
     def __init__(self) :
         super().__init__()
@@ -28,7 +28,7 @@ class M3T_model(nn.Module):
 
         # 2D CNN
         self.cnn2d = resnet50(weights=ResNet50_Weights.DEFAULT)
-        self.cnn2d.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.cnn2d.conv1 = nn.Conv2d(32, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.cnn2d.fc = nn.Sequential(
             nn.Linear(2048,512),
             nn.ReLU(),
@@ -49,7 +49,7 @@ class M3T_model(nn.Module):
 
         # Classification
         self.fc = nn.Sequential(
-            nn.Linear(384*256,1),
+            nn.Linear(388*256,1),
             nn.Sigmoid()
         )
 
@@ -60,22 +60,16 @@ class M3T_model(nn.Module):
         x = x.unsqueeze(1)      # B*1*128*128*128
         x = self.cnn3d(x)       # B*32*128*128*128
 
-        # 2. Multi-Slices
-        cor = x.transpose(1,2)                  # B*128*32*128*128
-        sag = x.transpose(1,3).transpose(2,3)   # B*128*32*128*128
-        axi = x.transpose(1,4).transpose(2,4)   # B*128*32*128*128
-
-        # 3. 2D CNN
-        c,s,a = ([],[],[])
-        for i in range(128):
-            c.append(self.cnn2d(cor[:,i]).unsqueeze(1))     # [B*256]
-            s.append(self.cnn2d(sag[:,i]).unsqueeze(1))     # [B*256]
-            a.append(self.cnn2d(axi[:,i]).unsqueeze(1))     # [B*256]
-        c = torch.concat(c,dim=1)   # B*128*256
-        s = torch.concat(s,dim=1)   # B*128*256
-        a = torch.concat(a,dim=1)   # B*128*256
+        # 2. Multi-Slices & 2D CNN
+        c = self.cnn2d(x[:,:,0,:,:]).unsqueeze(1)
+        s = self.cnn2d(x[:,:,:,0,:]).unsqueeze(1)
+        a = self.cnn2d(x[:,:,:,:,0]).unsqueeze(1)
+        for i in range(1,128):
+            c = torch.concat([c,self.cnn2d(x[:,:,i,:,:]).unsqueeze(1)],dim=1)   # 2dcnn out: [B*256]
+            s = torch.concat([s,self.cnn2d(x[:,:,:,i,:]).unsqueeze(1)],dim=1)   # 
+            a = torch.concat([a,self.cnn2d(x[:,:,:,:,i]).unsqueeze(1)],dim=1)   # c,saa: [B*128*256]
         
-        # 4. Position and Plane Embedding
+        # 3. Position and Plane Embedding
         cls_tokens = repeat(self.cls_token, '() n e -> b n e',b=x.shape[0])
         sep_tokens = repeat(self.sep_token, '() n e -> b n e',b=x.shape[0])
         out = torch.concat([cls_tokens,c,sep_tokens,s,sep_tokens,a,sep_tokens],dim=1)   # B*388*256
@@ -83,10 +77,10 @@ class M3T_model(nn.Module):
         pln_emb = self.pln_emb(self.pln_idx)    # 388*256
         out += pos_emb + pln_emb                # B*388*256
 
-        # 5. Transformer Encoder
-        out = self.transformer_enc(a)   # B*388*256
+        # 4. Transformer Encoder
+        out = self.transformer_enc(out)   # B*388*256
 
-        # 6. Classification
+        # 5. Classification
         out = out.flatten(1)    # B*99328
         out = self.fc(out)      # B*1
         return torch.squeeze(out)
