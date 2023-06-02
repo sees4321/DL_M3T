@@ -5,10 +5,24 @@ import numpy as np
 import random
 
 from scipy import io
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+class CustomDataSet(Dataset):
+    # x_tensor: data
+    # y_tensor: label
+    def __init__(self, x_tensor, y_tensor):
+        self.x = x_tensor
+        self.y = y_tensor
+        assert self.x.size(0) == self.y.size(0)
+
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
+    
+    def __len__(self):
+        return len(self.y)
+    
 def ManualSeed(seed:int, deterministic=False):
     # random seed 고정
     np.random.seed(seed)

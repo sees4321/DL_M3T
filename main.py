@@ -4,7 +4,6 @@ import datetime
 
 from utils import *
 from models import M3T_model
-from torch.utils.data import DataLoader
 
 # Jang, Jinseong, and Dosik Hwang. 
 # "M3T: three-dimensional Medical image classifier using Multi-plane and Multi-slice Transformer." 
@@ -21,8 +20,11 @@ learning_rate = 5e-5
 # data => this code block need to be edited with actual data
 data = torch.rand((100,128,128,128))
 label = torch.zeros((100))
-train_loader = DataLoader(data[:70],batch_size=num_batch,shuffle=False)
-test_loader = DataLoader(data[70:],batch_size=num_batch,shuffle=False)
+label[:50] = 1
+train_set = CustomDataSet(data[:80],label[:80])
+test_set = CustomDataSet(data[80:],label[80:])
+train_loader = DataLoader(train_set,batch_size=num_batch,shuffle=False)
+test_loader = DataLoader(test_set,batch_size=num_batch,shuffle=False)
 
 # train-test
 model = M3T_model().to(DEVICE)
