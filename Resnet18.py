@@ -122,7 +122,7 @@ class ResNet18(nn.Module):
             zero_init_residual: bool = False,
             norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
-        super(ResNet, self).__init__()
+        super(ResNet18, self).__init__()
         if norm_layer is None:
             norm_layer = nn.LayerNorm([64,64,64])
             residual_norm_layer = nn.BatchNorm2d
@@ -139,10 +139,10 @@ class ResNet18(nn.Module):
 
         # residual blocks
         self.layer1 = self._make_layer(block, 64, 32, layers[0])
-        self.layer2 = self._make_layer(block, 128, 16, layers[1], stride=2, dilate=False)
-        self.layer3 = self._make_layer(block, 256, 8, layers[2], stride=2, dilate=False)
-        self.layer4 = self._make_layer(block, 512, 4, layers[3], stride=2, dilate=False)
-        self.conv2 = nn.Conv2d(512, self.inplanes, kernel_size=4, stride=1, padding=0, bias=False) # Input image size에 따라 kernel size 변경 가능
+        self.layer2 = self._make_layer(block, 128, 32, layers[1], stride=1, dilate=False)
+        self.layer3 = self._make_layer(block, 256, 32, layers[2], stride=1, dilate=False)
+        self.layer4 = self._make_layer(block, 512, 32, layers[3], stride = 1, dilate=False)
+        self.conv2 = nn.Conv2d(512, self.inplanes, kernel_size=32, stride=1, padding=0, bias=False) # Input image size에 따라 kernel size 변경 가능
 
         # weight initalizaiton
         for m in self.modules():
@@ -181,30 +181,31 @@ class ResNet18(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x: Tensor) -> Tensor:
-        #print('input shape:', x.shape)
+        print('input shape:', x.shape)
         x = self.conv1(x)
-        #print('conv1 shape:', x.shape)
+        print('conv1 shape:', x.shape)
         x = self.bn1(x)
-        #print('bn1 shape:', x.shape)
+        print('bn1 shape:', x.shape)
         x = self.relu(x)
-        #print('relu shape:', x.shape)
+        print('relu shape:', x.shape)
         x = self.maxpool(x)
-        #print('maxpool shape:', x.shape)
+        print('maxpool shape:', x.shape)
 
         x = self.layer1(x)
-        #print('layer1 shape:', x.shape)
+        print('layer1 shape:', x.shape)
         x = self.layer2(x)
-        #print('layer2 shape:', x.shape)
+        print('layer2 shape:', x.shape)
         x = self.layer3(x)
-        #print('layer3 shape:', x.shape)
+        print('layer3 shape:', x.shape)
         x = self.layer4(x)
-        #print('layer4 shape:', x.shape)
+        print('layer4 shape:', x.shape)
         y = self.conv2(x)
-        #print('Attention layer:', y.shape)
+        print('Attention layer:', y.shape)
         z = x*y
-        #print('output:', z.shape)
+        print('output:', z.shape)
         return z
 
-#model = ResNet(BasicBlock, [2,2,2,2])
-#x = torch.randn(100,128,128,128)
-#model(x).shape
+model = ResNet18(BasicBlock, [2,2,2,2])
+x = torch.randn(100,128,128,128)
+model(x).shape
+
