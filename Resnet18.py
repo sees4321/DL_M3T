@@ -181,31 +181,31 @@ class ResNet18(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x: Tensor) -> Tensor:
-        print('input shape:', x.shape)
+        #print('input shape:', x.shape)
         x = self.conv1(x)
-        print('conv1 shape:', x.shape)
+        #print('conv1 shape:', x.shape)
         x = self.bn1(x)
-        print('bn1 shape:', x.shape)
+        #print('bn1 shape:', x.shape)
         x = self.relu(x)
-        print('relu shape:', x.shape)
+        #print('relu shape:', x.shape)
         x = self.maxpool(x)
-        print('maxpool shape:', x.shape)
+        #print('maxpool shape:', x.shape)
 
         x = self.layer1(x)
-        print('layer1 shape:', x.shape)
+        #print('layer1 shape:', x.shape)
         x = self.layer2(x)
-        print('layer2 shape:', x.shape)
+        #print('layer2 shape:', x.shape)
         x = self.layer3(x)
-        print('layer3 shape:', x.shape)
+        #print('layer3 shape:', x.shape)
         x = self.layer4(x)
-        print('layer4 shape:', x.shape)
+        #print('layer4 shape:', x.shape)
         y = self.conv2(x)
-        print('Attention layer:', y.shape)
+        #print('Attention layer:', y.shape)
         z = x*y
-        print('output:', z.shape)
+        #print('output:', z.shape)
         return z
 
-model = ResNet18(BasicBlock, [2,2,2,2])
-x = torch.randn(100,128,128,128)
-model(x).shape
+#model = ResNet18(BasicBlock, [2,2,2,2])
+#x = torch.randn(100,128,128,128)
+#model(x).shape
 
