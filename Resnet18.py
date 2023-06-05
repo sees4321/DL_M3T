@@ -122,7 +122,7 @@ class ResNet18(nn.Module):
             zero_init_residual: bool = False,
             norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
-        super(ResNet, self).__init__()
+        super(ResNet18, self).__init__()
         if norm_layer is None:
             norm_layer = nn.LayerNorm([64,64,64])
             residual_norm_layer = nn.BatchNorm2d
@@ -139,10 +139,10 @@ class ResNet18(nn.Module):
 
         # residual blocks
         self.layer1 = self._make_layer(block, 64, 32, layers[0])
-        self.layer2 = self._make_layer(block, 128, 16, layers[1], stride=2, dilate=False)
-        self.layer3 = self._make_layer(block, 256, 8, layers[2], stride=2, dilate=False)
-        self.layer4 = self._make_layer(block, 512, 4, layers[3], stride=2, dilate=False)
-        self.conv2 = nn.Conv2d(512, self.inplanes, kernel_size=4, stride=1, padding=0, bias=False) # Input image size에 따라 kernel size 변경 가능
+        self.layer2 = self._make_layer(block, 128, 32, layers[1], stride=1, dilate=False)
+        self.layer3 = self._make_layer(block, 256, 32, layers[2], stride=1, dilate=False)
+        self.layer4 = self._make_layer(block, 512, 32, layers[3], stride = 1, dilate=False)
+        self.conv2 = nn.Conv2d(512, self.inplanes, kernel_size=32, stride=1, padding=0, bias=False) # Input image size에 따라 kernel size 변경 가능
 
         # weight initalizaiton
         for m in self.modules():
@@ -205,6 +205,6 @@ class ResNet18(nn.Module):
         #print('output:', z.shape)
         return z
 
-#model = ResNet(BasicBlock, [2,2,2,2])
+#model = ResNet18(BasicBlock, [2,2,2,2])
 #x = torch.randn(100,128,128,128)
 #model(x).shape
