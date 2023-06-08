@@ -2,8 +2,10 @@ import torch
 import torch.optim as optim
 import datetime
 
+
 from utils import *
 from models import M3T_model
+from do_swin_transformer import do_swin_transformer
 
 # Jang, Jinseong, and Dosik Hwang. 
 # "M3T: three-dimensional Medical image classifier using Multi-plane and Multi-slice Transformer." 
@@ -27,7 +29,7 @@ train_loader = DataLoader(train_set,batch_size=num_batch,shuffle=False)
 test_loader = DataLoader(test_set,batch_size=num_batch,shuffle=False)
 
 # train-test
-model = M3T_model().to(DEVICE)
+model = do_swin_transformer().to(DEVICE)
 tr_acc, tr_loss = doTrain(model=model,
                           train_loader=train_loader,
                           num_epoch=num_epoch,
